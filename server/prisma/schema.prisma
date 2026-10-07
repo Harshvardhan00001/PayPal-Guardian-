@@ -1,0 +1,172 @@
+// PayPal Guardian - Prisma Database Schema
+// Optimized for zero-configuration local development (SQLite) and seamless Neon/PostgreSQL cloud deploy.
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String                @id @default(uuid())
+  email        String                @unique
+  name         String
+  createdAt    DateTime              @default(now()) @map("created_at")
+  policies     Policy[]
+  transactions TransactionProposal[]
+  approvals    Approval[]
+  auditEvents  AuditEvent[]
+
+  @@map("users")
+}
+
+model Policy {
+  id           String                @id @default(uuid())
+  userId       String                @map("user_id")
+  name         String
+  description  String?
+  status       String                @default("ACTIVE") // ACTIVE, PAUSED, ARCHIVED
+  createdAt    DateTime              @default(now()) @map("created_at")
+  updatedAt    DateTime              @updatedAt @map("updated_at")
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  versions     PolicyVersion[]
+  transactions TransactionProposal[]
+
+  @@index([userId, status])
+  @@map("policies")
+}
+
+model PolicyVersion {
+  id        String   @id @default(uuid())
+  policyId  String   @map("policy_id")
+  version   Int
+  rulesJson String   @map("rules_json") // JSON string representation of PolicyRules
+  createdAt DateTime @default(now()) @map("created_at")
+  policy    Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@unique([policyId, version])
+  @@map("policy_versions")
+}
+
+model TransactionProposal {
+  id            String            @id @default(uuid())
+  userId        String            @map("user_id")
+  policyId      String            @map("policy_id")
+  policyVersion Int               @map("policy_version")
+  merchant      String
+  currency      String            @default("INR")
+  subtotal      Decimal
+  shipping      Decimal           @default(0.00)
+  tax           Decimal           @default(0.00)
+  fees          Decimal           @default(0.00)
+  total         Decimal
+  recurring     Boolean           @default(false)
+  status        String            @default("CREATED") // CREATED, EVALUATING, ALLOW, ASK, USER_APPROVED, PAYPAL_CREATED, COMPLETED, BLOCKED, ORDER_CHANGED, etc.
+  snapshotHash  String            @map("snapshot_hash")
+  expiresAt     DateTime          @map("expires_at")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policy        Policy            @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  items         TransactionItem[]
+  evaluations   Evaluation[]
+  approvals     Approval[]
+  paypalOrders  PayPalOrder[]
+  auditEvents   AuditEvent[]
+
+  @@index([userId, status])
+  @@index([snapshotHash])
+  @@map("transaction_proposals")
+}
+
+model TransactionItem {
+  id            String              @id @default(uuid())
+  transactionId String              @map("transaction_id")
+  sku           String?
+  name          String
+  category      String
+  quantity      Int
+  unitPrice     Decimal             @map("unit_price")
+  totalPrice    Decimal             @map("total_price")
+  createdAt     DateTime            @default(now()) @map("created_at")
+  transaction   TransactionProposal @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([transactionId])
+  @@map("transaction_items")
+}
+
+model Evaluation {
+  id            String              @id @default(uuid())
+  transactionId String              @map("transaction_id")
+  decision      String              // ALLOW, ASK, BLOCK
+  reasonCodes   String              @default("[]") @map("reason_codes") // JSON string of ReasonDetail[]
+  riskSignals   String              @default("{}") @map("risk_signals") // JSON string of risk indicators
+  evaluatedAt   DateTime            @default(now()) @map("evaluated_at")
+  transaction   TransactionProposal @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([transactionId])
+  @@map("evaluations")
+}
+
+model Approval {
+  id            String              @id @default(uuid())
+  transactionId String              @map("transaction_id")
+  userId        String              @map("user_id")
+  snapshotHash  String              @map("snapshot_hash")
+  approvedAt    DateTime            @default(now()) @map("approved_at")
+  expiresAt     DateTime            @map("expires_at")
+  transaction   TransactionProposal @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([transactionId, snapshotHash])
+  @@index([transactionId])
+  @@map("approvals")
+}
+
+model PayPalOrder {
+  id                String              @id @default(uuid())
+  transactionId     String              @map("transaction_id")
+  paypalOrderId     String              @unique @map("paypal_order_id")
+  intent            String              @default("CAPTURE")
+  status            String
+  amount            Decimal
+  currency          String
+  rawPayPalResponse String              @map("raw_paypal_response") // JSON string
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+  transaction       TransactionProposal @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([paypalOrderId])
+  @@map("paypal_orders")
+}
+
+model WebhookEvent {
+  id        String   @id @default(uuid())
+  eventId   String   @unique @map("event_id")
+  eventType String   @map("event_type")
+  payload   String   // JSON string
+  processed Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([eventId])
+  @@map("webhook_events")
+}
+
+model AuditEvent {
+  id            String               @id @default(uuid())
+  userId        String?              @map("user_id")
+  transactionId String?              @map("transaction_id")
+  eventType     String               @map("event_type")
+  actor         String               // USER, AI_AGENT, POLICY_ENGINE, PAYPAL_SERVICE, PAYPAL_WEBHOOK
+  metadata      String               @default("{}") // JSON string
+  createdAt     DateTime             @default(now()) @map("created_at")
+  user          User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  transaction   TransactionProposal? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+
+  @@index([transactionId, createdAt])
+  @@index([userId, createdAt])
+  @@map("audit_events")
+}

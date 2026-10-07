@@ -1,0 +1,30 @@
+{
+  "name": "paypal-guardian",
+  "version": "1.0.0",
+  "description": "PayPal Guardian — The firewall between AI and your money.",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "build:server": "npm --prefix server run build",
+    "build:client": "npm --prefix client run build",
+    "test:server": "npm --prefix server run test",
+    "db:migrate": "npm --prefix server run db:migrate",
+    "db:seed": "npm --prefix server run db:seed",
+    "db:generate": "npm --prefix server run db:generate"
+  },
+  "keywords": [
+    "paypal",
+    "ai",
+    "agentic-commerce",
+    "policy-engine",
+    "guardian",
+    "hackathon"
+  ],
+  "author": "PayPal Guardian Team",
+  "license": "MIT"
+}
