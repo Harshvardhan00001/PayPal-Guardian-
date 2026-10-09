@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import sensible from '@fastify/sensible';
 import dotenv from 'dotenv';
 import { healthRoutes } from './routes/health.js';
+import { policyRoutes } from './modules/policies/policies.routes.js';
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ export async function buildServer() {
 
   // Register routes
   await server.register(healthRoutes);
+  await server.register(policyRoutes);
 
   return server;
 }
