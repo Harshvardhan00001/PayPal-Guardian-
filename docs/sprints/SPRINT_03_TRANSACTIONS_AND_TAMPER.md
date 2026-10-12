@@ -1,7 +1,7 @@
 # Sprint 3: Transaction Proposals & Tamper Guard
 
 > **Focus:** Cart Proposal Ingestion, Snapshot Hash Assertion, Approval Lifecycle, and Cart Mutation / Tamper Detection  
-> **Status:** ⚪ Pending  
+> **Status:** 🟢 Completed  
 > **Reference Specs:** [`docs/04_POLICY_ENGINE_AND_SECURITY_SPEC.md`](../04_POLICY_ENGINE_AND_SECURITY_SPEC.md), [`docs/03_API_SPECIFICATION.md`](../03_API_SPECIFICATION.md)  
 
 ---
@@ -18,25 +18,30 @@
 
 ## 2. Task Checklist
 
-- [ ] **Task 3.1: Transaction Proposal Ingestion API**
-  - Path: `server/src/modules/transactions/transactions.routes.ts` & `transactions.service.ts`
+- [x] **Task 3.1: Transaction Proposal Ingestion API**
+  - Path: `server/src/modules/transactions/transactions.routes.ts`, `transactions.controller.ts`, `transactions.service.ts`
   - Action: Handle cart proposals with merchant, items list, subtotal, shipping, tax, fees, and recurring flag.
   - Acceptance Criteria: Valid proposals are stored with computed `snapshot_hash` and evaluated decision (`ALLOW`, `ASK`, `BLOCK`).
 
-- [ ] **Task 3.2: Human Approval Endpoint & Cryptographic Binding**
-  - Path: `server/src/modules/transactions/transactions.controller.ts`
+- [x] **Task 3.2: Human Approval Endpoint & Cryptographic Binding**
+  - Path: `server/src/modules/transactions/transactions.controller.ts` & `transactions.service.ts`
   - Action: Expose `POST /api/v1/transactions/:id/approve` requiring `{ snapshot_hash }`. Verify provided hash matches current proposal hash before issuing approval record.
   - Acceptance Criteria: Invalid/mismatched hash returns `400 Bad Request`. Matching hash updates status to `USER_APPROVED`.
 
-- [ ] **Task 3.3: Order Mutation & Tamper Detection Engine**
-  - Path: `server/src/core/security/tamper-guard.ts`
+- [x] **Task 3.3: Order Mutation & Tamper Detection Engine**
+  - Path: `server/src/core/security/tamper-guard.ts` & `transactions.service.ts`
   - Action: Write verification helper checking `current_hash === approved_hash` before any downstream state change.
   - Acceptance Criteria: Mutated order raises `ORDER_CHANGED` error and invalidates prior approvals.
 
-- [ ] **Task 3.4: Automated Tampering Test Suite**
-  - Path: `server/tests/integration/tamper-detection.test.ts`
+- [x] **Task 3.4: Automated Tampering Test Suite**
+  - Path: `server/tests/integration/transactions-and-tamper.test.ts`
   - Action: Simulate attack where shopping agent injects an item or inflates total after user approval. Assert transaction enters `ORDER_CHANGED` and capture is aborted.
   - Acceptance Criteria: Test passes 100%.
+
+- [x] **Task 3.5: Transaction Query & Rejection Endpoints**
+  - Path: `server/src/modules/transactions/transactions.routes.ts`
+  - Action: Expose `GET /api/v1/transactions`, `GET /api/v1/transactions/:id`, `POST /api/v1/transactions/:id/reject`.
+  - Acceptance Criteria: Returns full proposal details, item breakdowns, and real-time snapshot hash integrity check.
 
 ---
 

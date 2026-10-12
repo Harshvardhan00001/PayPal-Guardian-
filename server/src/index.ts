@@ -4,6 +4,7 @@ import sensible from '@fastify/sensible';
 import dotenv from 'dotenv';
 import { healthRoutes } from './routes/health.js';
 import { policyRoutes } from './modules/policies/policies.routes.js';
+import { transactionRoutes } from './modules/transactions/transactions.routes.js';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ export async function buildServer() {
   // Register routes
   await server.register(healthRoutes);
   await server.register(policyRoutes);
+  await server.register(transactionRoutes);
 
   return server;
 }
