@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { healthRoutes } from './routes/health.js';
 import { policyRoutes } from './modules/policies/policies.routes.js';
 import { transactionRoutes } from './modules/transactions/transactions.routes.js';
+import { paymentRoutes } from './modules/payments/payments.routes.js';
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ export async function buildServer() {
   await server.register(healthRoutes);
   await server.register(policyRoutes);
   await server.register(transactionRoutes);
+  await server.register(paymentRoutes);
 
   return server;
 }
