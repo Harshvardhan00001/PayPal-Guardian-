@@ -4,6 +4,7 @@ import { SnapshotHasher } from '../../core/crypto/snapshot-hasher.js';
 import { DeterministicPolicyEngine } from '../../core/policy-engine/evaluator.js';
 import { CartProposal, PolicyRules } from '../../core/policy-engine/types.js';
 import { TamperGuard, TamperDetectedError } from '../../core/security/tamper-guard.js';
+import { PromptInjectionDetector } from '../../core/risk-detector/prompt-injection-detector.js';
 
 export class TransactionsService {
   /**
@@ -69,6 +70,20 @@ export class TransactionsService {
 
     // Execute deterministic evaluation (Zero LLM)
     const evalResult = DeterministicPolicyEngine.evaluate(policyRules, cartProposal);
+
+    // Security Defense: Check for prompt injections and untrusted instructions
+    const riskResult = PromptInjectionDetector.analyzeProposal(cartProposal);
+    if (riskResult.risk === 'SUSPICIOUS_INSTRUCTION') {
+      evalResult.reasons.push({
+        code: 'SUSPICIOUS_INSTRUCTION',
+        message: 'Security warning: Untrusted item metadata contains instruction override attempts.',
+        metadata: {
+          severity: riskResult.severity,
+          details: riskResult.details
+        }
+      });
+    }
+
     const status = evalResult.decision; // ALLOW, ASK, or BLOCK
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 min expiration
 
@@ -103,7 +118,10 @@ export class TransactionsService {
           create: {
             decision: evalResult.decision,
             reasonCodes: JSON.stringify(evalResult.reasons),
-            riskSignals: JSON.stringify({ passed_checks: evalResult.passed_checks })
+            riskSignals: JSON.stringify({
+              passed_checks: evalResult.passed_checks,
+              risk_analysis: riskResult
+            })
           }
         }
       },

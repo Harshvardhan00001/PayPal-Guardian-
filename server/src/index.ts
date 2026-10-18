@@ -6,6 +6,8 @@ import { healthRoutes } from './routes/health.js';
 import { policyRoutes } from './modules/policies/policies.routes.js';
 import { transactionRoutes } from './modules/transactions/transactions.routes.js';
 import { paymentRoutes } from './modules/payments/payments.routes.js';
+import { auditRoutes } from './modules/audit/audit.routes.js';
+import { webhookRoutes } from './modules/webhooks/webhooks.routes.js';
 
 dotenv.config();
 
@@ -38,6 +40,8 @@ export async function buildServer() {
   await server.register(policyRoutes);
   await server.register(transactionRoutes);
   await server.register(paymentRoutes);
+  await server.register(auditRoutes);
+  await server.register(webhookRoutes);
 
   return server;
 }
