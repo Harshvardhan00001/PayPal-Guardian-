@@ -35,9 +35,10 @@ export default function NewPolicyPage() {
       });
 
       if (response.success && response.data) {
+        const rules = response.data.interpreted_policy?.rules || response.data.parsed_rules;
         setParsedData({
-          rules: response.data.parsed_rules,
-          explanation: response.data.explanation,
+          rules,
+          explanation: response.data.explanation || response.data.summary_bullets?.join('. '),
           confidence: response.data.confidence
         });
       }

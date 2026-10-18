@@ -1,8 +1,16 @@
 import { z } from 'zod';
 
-export const parsePolicySchema = z.object({
-  text: z.string().min(3, 'Instruction text must be at least 3 characters long')
-});
+export const parsePolicySchema = z
+  .object({
+    text: z.string().optional(),
+    natural_language: z.string().optional()
+  })
+  .refine((data) => !!(data.text || data.natural_language), {
+    message: 'Instruction text or natural_language must be provided'
+  })
+  .transform((data) => ({
+    text: (data.text || data.natural_language)!
+  }));
 
 export const policyRulesSchema = z.object({
   max_amount: z.number().positive('max_amount must be greater than zero'),

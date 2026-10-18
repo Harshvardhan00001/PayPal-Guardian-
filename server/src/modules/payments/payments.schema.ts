@@ -6,8 +6,8 @@ export const createPaymentOrderSchema = z.object({
 
 export const capturePaymentSchema = z.object({
   transaction_id: z.string().min(1, 'Transaction ID is required'),
-  paypal_order_id: z.string().min(1, 'PayPal Order ID is required'),
-  expected_snapshot_hash: z.string().length(64, 'Expected snapshot hash must be 64 characters')
+  paypal_order_id: z.string().optional(),
+  expected_snapshot_hash: z.string().optional()
 });
 
 export type CreatePaymentOrderInput = z.infer<typeof createPaymentOrderSchema>;

@@ -122,7 +122,11 @@ export class PaymentsService {
   /**
    * Captures an approved PayPal payment after enforcing strict snapshot hash assertion.
    */
-  public static async capturePayment(transactionId: string, paypalOrderId: string, expectedSnapshotHash: string) {
+  public static async capturePayment(
+    transactionId: string,
+    paypalOrderId?: string,
+    expectedSnapshotHash?: string
+  ) {
     const proposal = await db.transactionProposal.findUnique({
       where: { id: transactionId },
       include: {
@@ -135,6 +139,13 @@ export class PaymentsService {
     if (!proposal) {
       throw new Error(`Transaction proposal '${transactionId}' not found.`);
     }
+
+    const effectiveOrderId = paypalOrderId || proposal.paypalOrders[0]?.paypalOrderId;
+    if (!effectiveOrderId) {
+      throw new Error(`No PayPal Order found for transaction '${transactionId}'.`);
+    }
+
+    const effectiveHash = expectedSnapshotHash || proposal.approvals[0]?.snapshotHash || proposal.snapshotHash;
 
     // Reconstruct current CartProposal
     const currentCart: CartProposal = {
@@ -158,7 +169,7 @@ export class PaymentsService {
 
     // 1. STRICT PRE-CAPTURE TAMPER INTEGRITY CHECK
     try {
-      TamperGuard.assertSnapshotIntegrity(currentCart, expectedSnapshotHash);
+      TamperGuard.assertSnapshotIntegrity(currentCart, effectiveHash);
     } catch (err: any) {
       if (err instanceof TamperDetectedError) {
         // Automatically revoke approval and set ORDER_CHANGED
@@ -191,7 +202,7 @@ export class PaymentsService {
     }
 
     // 3. Execute PayPal Capture
-    const captureResult = await paypalOrderService.captureOrder(paypalOrderId, transactionId, {
+    const captureResult = await paypalOrderService.captureOrder(effectiveOrderId, transactionId, {
       currency: proposal.currency,
       value: Number(proposal.total)
     });
