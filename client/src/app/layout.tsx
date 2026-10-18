@@ -1,5 +1,6 @@
 import '../styles/globals.css';
 import { Metadata } from 'next';
+import { Navbar } from '../components/Navbar';
 
 export const metadata: Metadata = {
   title: 'PayPal Guardian — The firewall between AI and your money',
@@ -13,8 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="antialiased bg-slate-950 text-slate-100 min-h-screen">
-        {children}
+      <body className="antialiased bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex flex-col">{children}</main>
       </body>
     </html>
   );

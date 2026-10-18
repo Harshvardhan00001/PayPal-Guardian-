@@ -15,7 +15,7 @@
 | **Sprint 3** | **Transaction Lifecycle & Tamper Guard** | 🟢 Completed | 5 / 5 | Proposal ingestion, ALLOW/ASK/BLOCK flow, User approval, Tamper detection | [SPRINT_03](./SPRINT_03_TRANSACTIONS_AND_TAMPER.md) |
 | **Sprint 4** | **PayPal Orders v2 Integration** | 🟢 Completed | 5 / 5 | OAuth2 token cache, Sandbox Orders v2 Create & Capture, Idempotency keys | [SPRINT_04](./SPRINT_04_PAYPAL_ORDERS_INTEGRATION.md) |
 | **Sprint 5** | **Webhooks, Audit & Security** | 🟢 Completed | 4 / 4 | Webhook signature verification, Append-only audit events, Prompt injection filter | [SPRINT_05](./SPRINT_05_WEBHOOKS_AUDIT_SECURITY.md) |
-| **Sprint 6** | **Frontend & Agent Simulator** | ⚪ Pending | 0 / 6 | Next.js 14 App Router, Conversational Policy UI, Approval Drawer, Agent Simulator | [SPRINT_06](./SPRINT_06_FRONTEND_AND_SIMULATOR.md) |
+| **Sprint 6** | **Frontend & Agent Simulator** | 🟢 Completed | 6 / 6 | Next.js 14 App Router, Conversational Policy UI, Approval Drawer, Agent Simulator | [SPRINT_06](./SPRINT_06_FRONTEND_AND_SIMULATOR.md) |
 | **Sprint 7** | **E2E Verification & Demo Rehearsal** | ⚪ Pending | 0 / 5 | Test suites, Tamper demo verification, 7-scene hackathon recording, Deployment | [SPRINT_07](./SPRINT_07_E2E_VERIFICATION_DEMO.md) |
 
 ---
